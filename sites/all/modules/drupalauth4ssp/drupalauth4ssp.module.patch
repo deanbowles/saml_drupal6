@@ -1,0 +1,40 @@
+--- drupalauth4ssp.module.orig	Mon Nov 19 17:48:25 2012
++++ drupalauth4ssp.module	Sat Nov  2 16:45:53 2013
+@@ -46,6 +46,36 @@
+   );
+ }
+ 
++
++function drupalauth4ssp_user($op, &$edit, &$account, $category = NULL) {
++  switch ($op) {
++
++    case 'login':
++      _drupalauth4ssp_exec($account);
++      break;
++
++    case 'logout':
++      // Get the configuration information from SimpleSAMLphp
++      $sspConfig = _drupalauth4ssp_get_simplesamlphp_config();
++
++      // If we don't have configuration, exit without doing anything
++      if (!is_array($sspConfig)) {
++        // The least we can do is write something to the watchdog so someone will know what's happening.
++        watchdog('drupalauth4ssp', 'Could not use drupalauth for %name, could not get the SimpleSAMLphp configuration.', array('%name' => $user->name));
++        return;
++      }
++
++      // Delete the cookie
++      setcookie($sspConfig['cookie_name'], "", time() - 3600 , $sspConfig['baseurlpath']);
++      break;
++
++    case 'view':
++      _drupalauth4ssp_exec($account);
++      break;
++  }
++}
++
++
+ // implements hook_user_login()
+ function drupalauth4ssp_user_login(&$edit, $account) {
+   _drupalauth4ssp_exec($account);
+
